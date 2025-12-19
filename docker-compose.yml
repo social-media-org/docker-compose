@@ -33,8 +33,8 @@ services:
       - VIDEO_SERVICE_URL=http://video-service:8000
       - SUBTITLE_SERVICE_URL=http://subtitle-service:8000
       - YOUTUBE_SERVICE_URL=http://youtube-service:8000
-      - MONGODB_URL=mongodb://mongodb:27017
-      - DB_NAME=ai_studio
+      - MONGODB_URL=${MONGODB_URL:-mongodb://mongodb:27017}
+      - DB_NAME=${DB_NAME:-ai_studio}
       - UI_FRONTEND_DOMAIN=${UI_FRONTEND_DOMAIN}
       - UI_SERVICE_DOMAIN=${UI_SERVICE_DOMAIN}
       - YOUTUBE_SERVICE_DOMAIN=${YOUTUBE_SERVICE_DOMAIN}
@@ -69,8 +69,8 @@ services:
       - "8001:8000"
     environment:
       - APP_PORT=8000
-      - MONGODB_URL=mongodb://mongodb:27017
-      - DB_NAME=ai_studio
+      - MONGODB_URL=${MONGODB_URL:-mongodb://mongodb:27017}
+      - DB_NAME=${DB_NAME:-ai_studio}
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
       interval: 30s
@@ -87,8 +87,27 @@ services:
       - "8002:8000"
     environment:
       - APP_PORT=8000
-      - MONGODB_URL=mongodb://mongodb:27017
-      - DB_NAME=ai_studio
+      - MONGODB_URL=${MONGODB_URL:-mongodb://mongodb:27017}
+      - DB_NAME=${DB_NAME:-ai_studio}
+      # Application configuration
+      - APP_NAME=${APP_NAME:-FastAPI Clean Architecture}
+      - APP_VERSION=${APP_VERSION:-1.0.0}
+      - DEBUG=${DEBUG:-false}
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+      - API_V1_PREFIX=${API_V1_PREFIX:-/api/v1}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-["*"]}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - LOG_FORMAT=${LOG_FORMAT:-text}
+      # MongoDB configuration
+      - MONGODB_MIN_POOL_SIZE=${MONGODB_MIN_POOL_SIZE:-10}
+      - MONGODB_MAX_POOL_SIZE=${MONGODB_MAX_POOL_SIZE:-100}
+      # ElevenLabs API Keys (up to 5 keys for rotation)
+      - ELEVENLABS_API_KEY1=${ELEVENLABS_API_KEY1}
+      - ELEVENLABS_API_KEY2=${ELEVENLABS_API_KEY2}
+      - ELEVENLABS_API_KEY3=${ELEVENLABS_API_KEY3}
+      - ELEVENLABS_API_KEY4=${ELEVENLABS_API_KEY4}
+      - ELEVENLABS_API_KEY5=${ELEVENLABS_API_KEY5}
+      - ELEVENLABS_VOICE_ID=${ELEVENLABS_VOICE_ID:-NOpBlnGInO9m6vDvFkFC}
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
       interval: 30s
@@ -105,8 +124,8 @@ services:
       - "8003:8000"
     environment:
       - APP_PORT=8000
-      - MONGODB_URL=mongodb://mongodb:27017
-      - DB_NAME=ai_studio
+      - MONGODB_URL=${MONGODB_URL:-mongodb://mongodb:27017}
+      - DB_NAME=${DB_NAME:-ai_studio}
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
       interval: 30s
@@ -123,8 +142,8 @@ services:
       - "8004:8000"
     environment:
       - APP_PORT=8000
-      - MONGODB_URL=mongodb://mongodb:27017
-      - DB_NAME=ai_studio
+      - MONGODB_URL=${MONGODB_URL:-mongodb://mongodb:27017}
+      - DB_NAME=${DB_NAME:-ai_studio}
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
       interval: 30s
@@ -139,8 +158,8 @@ services:
     restart: always
     environment:
       - APP_PORT=8000
-      - MONGODB_URL=mongodb://mongodb:27017
-      - DB_NAME=ai_studio
+      - MONGODB_URL=${MONGODB_URL:-mongodb://mongodb:27017}
+      - DB_NAME=${DB_NAME:-ai_studio}
       - YOUTUBE_SERVICE_DOMAIN=${YOUTUBE_SERVICE_DOMAIN}
       - UI_FRONTEND_DOMAIN=${UI_FRONTEND_DOMAIN}
     healthcheck:
