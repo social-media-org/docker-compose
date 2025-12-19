@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   ui-frontend:
-    image: ghcr.io/social-media/ui-frontend:latest
+    image: ghcr.io/social-media-org/ui-frontend:latest
     container_name: ui-frontend
     restart: always
     environment:
@@ -23,7 +23,7 @@ services:
       - "traefik.http.middlewares.ui-frontend-https-headers.headers.customRequestHeaders.X-Forwarded-Proto=https"
 
   ui-service:
-    image: ghcr.io/social-media/ui-service:latest
+    image: ghcr.io/social-media-org/ui-service:latest
     container_name: ui-service
     restart: always
     environment:
@@ -62,7 +62,7 @@ services:
       - "traefik.http.middlewares.ui-service-https-headers.headers.customRequestHeaders.X-Forwarded-Proto=https"
 
   script-service:
-    image: ghcr.io/social-media/script-service:latest
+    image: ghcr.io/social-media-org/script-service:latest
     container_name: script-service
     restart: always
     ports:
@@ -80,7 +80,7 @@ services:
       - social-media-network
 
   audio-service:
-    image: ghcr.io/social-media/audio-service:latest
+    image: ghcr.io/social-media-org/audio-service:latest
     container_name: audio-service
     restart: always
     ports:
@@ -98,7 +98,7 @@ services:
       - social-media-network
 
   video-service:
-    image: ghcr.io/social-media/video-service:latest
+    image: ghcr.io/social-media-org/video-service:latest
     container_name: video-service
     restart: always
     ports:
@@ -116,7 +116,7 @@ services:
       - social-media-network
 
   subtitle-service:
-    image: ghcr.io/social-media/subtitle-service:latest
+    image: ghcr.io/social-media-org/subtitle-service:latest
     container_name: subtitle-service
     restart: always
     ports:
@@ -134,7 +134,7 @@ services:
       - social-media-network
 
   youtube-service:
-    image: ghcr.io/social-media/youtube-service:latest
+    image: ghcr.io/social-media-org/youtube-service:latest
     container_name: youtube-service
     restart: always
     environment:
