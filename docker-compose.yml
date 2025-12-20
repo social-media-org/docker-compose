@@ -27,11 +27,11 @@ services:
 
     environment:
       - APP_PORT=8000
-      - SCRIPT_SERVICE_URL=http://script-service:8000
-      - AUDIO_SERVICE_URL=http://audio-service:8000
-      - VIDEO_SERVICE_URL=http://video-service:8000
-      - SUBTITLE_SERVICE_URL=http://subtitle-service:8000
-      - YOUTUBE_SERVICE_URL=http://youtube-service:8000
+      - SCRIPT_SERVICE_URL=${SCRIPT_SERVICE_URL:-http://script-service:8000}
+      - AUDIO_SERVICE_URL=${AUDIO_SERVICE_URL:-http://audio-service:8000}
+      - VIDEO_SERVICE_URL=${VIDEO_SERVICE_URL:-http://video-service:8000}
+      - SUBTITLE_SERVICE_URL=${SUBTITLE_SERVICE_URL:-http://subtitle-service:8000}
+      - YOUTUBE_SERVICE_URL=${YOUTUBE_SERVICE_URL:-http://youtube-service:8000}
       - MONGODB_URL=${MONGODB_URL:-mongodb://mongodb:27017}
       - DB_NAME=${DB_NAME:-ai_studio}
       # Application configuration
@@ -72,7 +72,7 @@ services:
       - traefik.http.routers.ui-service.tls.certresolver=myhttpchallenge
       - "traefik.http.middlewares.ui-service-https-headers.headers.customRequestHeaders.X-Forwarded-Proto=https"
     volumes:
-      - ${DATA_WORKSPACE:-/data/workspace-stoicisme-video-generator/ressources}:/app/ressources
+      - ${DATA_WORKSPACE:-/data/workspace-social-media-video/ressources}:/app/ressources
 
   script-service:
     image: ghcr.io/social-media-org/script-service:latest
@@ -115,7 +115,7 @@ services:
     networks:
       - social-media-network
     volumes:
-      - ${DATA_WORKSPACE:-/data/workspace-stoicisme-video-generator/ressources}:/app/ressources
+      - ${DATA_WORKSPACE:-/data/workspace-social-media-video/ressources}:/app/ressources
 
   audio-service:
     image: ghcr.io/social-media-org/audio-service:latest
@@ -156,7 +156,7 @@ services:
     networks:
       - social-media-network
     volumes:
-      - ${DATA_WORKSPACE:-/data/workspace-stoicisme-video-generator/ressources}:/app/ressources
+      - ${DATA_WORKSPACE:-/data/workspace-social-media-video/ressources}:/app/ressources
 
   video-service:
     image: ghcr.io/social-media-org/video-service:latest
@@ -190,7 +190,7 @@ services:
     networks:
       - social-media-network
     volumes:
-      - ${DATA_WORKSPACE:-/data/workspace-stoicisme-video-generator/ressources}:/app/ressources
+      - ${DATA_WORKSPACE:-/data/workspace-social-media-video/ressources}:/app/ressources
 
   subtitle-service:
     image: ghcr.io/social-media-org/subtitle-service:latest
@@ -226,7 +226,7 @@ services:
     networks:
       - social-media-network
     volumes:
-      - ${DATA_WORKSPACE:-/data/workspace-stoicisme-video-generator/ressources}:/app/ressources
+      - ${DATA_WORKSPACE:-/data/workspace-social-media-video/ressources}:/app/ressources
 
   youtube-service:
     image: ghcr.io/social-media-org/youtube-service:latest
@@ -275,7 +275,7 @@ services:
       - traefik.http.routers.youtube-service.tls.certresolver=myhttpchallenge
       - "traefik.http.middlewares.youtube-service-https-headers.headers.customRequestHeaders.X-Forwarded-Proto=https"
     volumes:
-      - ${DATA_WORKSPACE:-/data/workspace-stoicisme-video-generator/ressources}:/app/ressources
+      - ${DATA_WORKSPACE:-/data/workspace-social-media-video/ressources}:/app/ressources
 
   mongodb:
     image: mongo:7.0
