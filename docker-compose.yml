@@ -5,6 +5,7 @@ services:
     image: ghcr.io/social-media-org/ui-frontend:latest
     container_name: ui-frontend
     restart: always
+    platform: linux/amd64
     environment:
       - VITE_API_BASE_URL=https://${UI_SERVICE_DOMAIN}
       - VITE_YOUTUBE_API_BASE_URL=https://${YOUTUBE_SERVICE_DOMAIN}
@@ -26,6 +27,7 @@ services:
     image: ghcr.io/social-media-org/ui-service:latest
     container_name: ui-service
     restart: always
+    platform: linux/amd64
     environment:
       - APP_PORT=8000
       - SCRIPT_SERVICE_URL=http://script-service:8000
@@ -51,6 +53,7 @@ services:
       - BACKEND_URL=${BACKEND_URL:-http://localhost:8000}
       - IMAGE_SERVICE_URL=${IMAGE_SERVICE_URL:-http://image-service:8003}
       # AssemblyAI
+      - RESOURCES_DIR=${RESOURCES_DIR}
       - ASSEMBLYAI_API_KEY=${ASSEMBLYAI_API_KEY}
       # Domain configuration
       - UI_FRONTEND_DOMAIN=${UI_FRONTEND_DOMAIN}
@@ -78,13 +81,14 @@ services:
       - traefik.http.routers.ui-service.tls=false
       - traefik.http.routers.ui-service.tls.certresolver=myhttpchallenge
       - "traefik.http.middlewares.ui-service-https-headers.headers.customRequestHeaders.X-Forwarded-Proto=https"
+    volumes:
+      - ${DATA_WORKSPACE:-/data/workspace-stoicisme-video-generator/ressources}:/app/ressources
 
   script-service:
     image: ghcr.io/social-media-org/script-service:latest
     container_name: script-service
     restart: always
-    ports:
-      - "8001:8000"
+    platform: linux/amd64
     environment:
       - APP_PORT=8000
       - MONGODB_URL=${MONGODB_URL:-mongodb://mongodb:27017}
@@ -112,6 +116,7 @@ services:
       # Script generation defaults
       - DEFAULT_DURATION=${DEFAULT_DURATION:-30}
       - DEFAULT_NB_SECTIONS=${DEFAULT_NB_SECTIONS:-1}
+      - RESOURCES_DIR=${RESOURCES_DIR}
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
       interval: 30s
@@ -119,11 +124,14 @@ services:
       retries: 3
     networks:
       - social-media-network
+    volumes:
+      - ${DATA_WORKSPACE:-/data/workspace-stoicisme-video-generator/ressources}:/app/ressources
 
   audio-service:
     image: ghcr.io/social-media-org/audio-service:latest
     container_name: audio-service
     restart: always
+    platform: linux/amd64
     ports:
       - "8002:8000"
     environment:
@@ -149,6 +157,7 @@ services:
       - ELEVENLABS_API_KEY4=${ELEVENLABS_API_KEY4}
       - ELEVENLABS_API_KEY5=${ELEVENLABS_API_KEY5}
       - ELEVENLABS_VOICE_ID=${ELEVENLABS_VOICE_ID:-NOpBlnGInO9m6vDvFkFC}
+      - RESOURCES_DIR=${RESOURCES_DIR}
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
       interval: 30s
@@ -156,11 +165,14 @@ services:
       retries: 3
     networks:
       - social-media-network
+    volumes:
+      - ${DATA_WORKSPACE:-/data/workspace-stoicisme-video-generator/ressources}:/app/ressources
 
   video-service:
     image: ghcr.io/social-media-org/video-service:latest
     container_name: video-service
     restart: always
+    platform: linux/amd64
     ports:
       - "8003:8000"
     environment:
@@ -179,6 +191,7 @@ services:
       # MongoDB configuration
       - MONGODB_MIN_POOL_SIZE=${MONGODB_MIN_POOL_SIZE:-10}
       - MONGODB_MAX_POOL_SIZE=${MONGODB_MAX_POOL_SIZE:-100}
+      - RESOURCES_DIR=${RESOURCES_DIR}
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
       interval: 30s
@@ -186,11 +199,14 @@ services:
       retries: 3
     networks:
       - social-media-network
+    volumes:
+      - ${DATA_WORKSPACE:-/data/workspace-stoicisme-video-generator/ressources}:/app/ressources
 
   subtitle-service:
     image: ghcr.io/social-media-org/subtitle-service:latest
     container_name: subtitle-service
     restart: always
+    platform: linux/amd64
     ports:
       - "8004:8000"
     environment:
@@ -211,6 +227,7 @@ services:
       - MONGODB_MAX_POOL_SIZE=${MONGODB_MAX_POOL_SIZE:-100}
       # AssemblyAI
       - ASSEMBLYAI_API_KEY=${ASSEMBLYAI_API_KEY}
+      - RESOURCES_DIR=${RESOURCES_DIR}
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
       interval: 30s
@@ -218,11 +235,14 @@ services:
       retries: 3
     networks:
       - social-media-network
+    volumes:
+      - ${DATA_WORKSPACE:-/data/workspace-stoicisme-video-generator/ressources}:/app/ressources
 
   youtube-service:
     image: ghcr.io/social-media-org/youtube-service:latest
     container_name: youtube-service
     restart: always
+    platform: linux/amd64
     environment:
       - APP_PORT=8000
       - MONGODB_URL=${MONGODB_URL:-mongodb://mongodb:27017}
@@ -248,6 +268,7 @@ services:
       - UI_FRONTEND_DOMAIN=${UI_FRONTEND_DOMAIN}
       # YouTube Features
       - ENABLE_SCHEDULED_PUBLISHING=${ENABLE_SCHEDULED_PUBLISHING:-true}
+      - RESOURCES_DIR=${RESOURCES_DIR}
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
       interval: 30s
@@ -263,6 +284,8 @@ services:
       - traefik.http.routers.youtube-service.tls=false
       - traefik.http.routers.youtube-service.tls.certresolver=myhttpchallenge
       - "traefik.http.middlewares.youtube-service-https-headers.headers.customRequestHeaders.X-Forwarded-Proto=https"
+    volumes:
+      - ${DATA_WORKSPACE:-/data/workspace-stoicisme-video-generator/ressources}:/app/ressources
 
   mongodb:
     image: mongo:7.0
