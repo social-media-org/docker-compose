@@ -5,13 +5,10 @@ services:
     image: ghcr.io/social-media-org/ui-frontend:latest
     container_name: ui-frontend
     restart: always
-    platform: linux/amd64
+
     environment:
       - VITE_API_BASE_URL=https://${UI_SERVICE_DOMAIN}
       - VITE_YOUTUBE_API_BASE_URL=https://${YOUTUBE_SERVICE_DOMAIN}
-    depends_on:
-      - ui-service
-      - youtube-service
     networks:
       - social-media-network
       - traefik_network
@@ -27,7 +24,7 @@ services:
     image: ghcr.io/social-media-org/ui-service:latest
     container_name: ui-service
     restart: always
-    platform: linux/amd64
+
     environment:
       - APP_PORT=8000
       - SCRIPT_SERVICE_URL=http://script-service:8000
@@ -59,13 +56,6 @@ services:
       - UI_FRONTEND_DOMAIN=${UI_FRONTEND_DOMAIN}
       - UI_SERVICE_DOMAIN=${UI_SERVICE_DOMAIN}
       - YOUTUBE_SERVICE_DOMAIN=${YOUTUBE_SERVICE_DOMAIN}
-    depends_on:
-      - script-service
-      - audio-service
-      - video-service
-      - subtitle-service
-      - youtube-service
-      - mongodb
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
       interval: 30s
@@ -88,7 +78,7 @@ services:
     image: ghcr.io/social-media-org/script-service:latest
     container_name: script-service
     restart: always
-    platform: linux/amd64
+
     environment:
       - APP_PORT=8000
       - MONGODB_URL=${MONGODB_URL:-mongodb://mongodb:27017}
@@ -131,7 +121,7 @@ services:
     image: ghcr.io/social-media-org/audio-service:latest
     container_name: audio-service
     restart: always
-    platform: linux/amd64
+
     ports:
       - "8002:8000"
     environment:
@@ -172,7 +162,7 @@ services:
     image: ghcr.io/social-media-org/video-service:latest
     container_name: video-service
     restart: always
-    platform: linux/amd64
+
     ports:
       - "8003:8000"
     environment:
@@ -206,7 +196,7 @@ services:
     image: ghcr.io/social-media-org/subtitle-service:latest
     container_name: subtitle-service
     restart: always
-    platform: linux/amd64
+
     ports:
       - "8004:8000"
     environment:
@@ -242,7 +232,7 @@ services:
     image: ghcr.io/social-media-org/youtube-service:latest
     container_name: youtube-service
     restart: always
-    platform: linux/amd64
+
     environment:
       - APP_PORT=8000
       - MONGODB_URL=${MONGODB_URL:-mongodb://mongodb:27017}
