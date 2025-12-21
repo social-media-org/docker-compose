@@ -58,7 +58,7 @@ services:
       - YOUTUBE_SERVICE_DOMAIN=${YOUTUBE_SERVICE_DOMAIN}
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
-      interval: 30s
+      interval: 300s
       timeout: 10s
       retries: 3
     networks:
@@ -109,7 +109,7 @@ services:
       - RESOURCES_DIR=${RESOURCES_DIR}
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
-      interval: 30s
+      interval: 300s
       timeout: 10s
       retries: 3
     networks:
@@ -150,7 +150,7 @@ services:
       - RESOURCES_DIR=${RESOURCES_DIR}
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
-      interval: 30s
+      interval: 300s
       timeout: 10s
       retries: 3
     networks:
@@ -184,7 +184,7 @@ services:
       - RESOURCES_DIR=${RESOURCES_DIR}
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
-      interval: 30s
+      interval: 300s
       timeout: 10s
       retries: 3
     networks:
@@ -220,7 +220,7 @@ services:
       - RESOURCES_DIR=${RESOURCES_DIR}
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
-      interval: 30s
+      interval: 300s
       timeout: 10s
       retries: 3
     networks:
@@ -261,7 +261,7 @@ services:
       - RESOURCES_DIR=${RESOURCES_DIR}
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
-      interval: 30s
+      interval: 300s
       timeout: 10s
       retries: 3
     networks:
