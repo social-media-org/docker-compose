@@ -277,19 +277,6 @@ services:
     volumes:
       - ${DATA_WORKSPACE:-/data/workspace-social-media-video/ressources}:/app/ressources
 
-  mongodb:
-    image: mongo:7.0
-    container_name: mongodb
-    restart: always
-    ports:
-      - "27017:27017"
-    environment:
-      - MONGO_INITDB_DATABASE=ai_studio
-    volumes:
-      - mongodb_data:/data/db
-    networks:
-      - social-media-network
-
 volumes:
   mongodb_data:
 
