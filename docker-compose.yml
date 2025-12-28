@@ -277,6 +277,44 @@ services:
     volumes:
       - ${DATA_WORKSPACE:-/data/workspace-social-media-video/ressources}:/app/ressources
 
+  image-and-video-generator:
+    image: ghcr.io/social-media-org/image-and-video-generator:latest
+    container_name: image-and-video-generator
+    restart: always
+
+    environment:
+      - APP_PORT=8000
+      # Application configuration
+      - APP_NAME=${APP_NAME:-Image and Video Generator Service}
+      - APP_VERSION=${APP_VERSION:-1.0.0}
+      - DEBUG=${DEBUG:-false}
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+      - API_V1_PREFIX=${API_V1_PREFIX:-}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-["*"]}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - LOG_FORMAT=${LOG_FORMAT:-text}
+      # API Keys
+      - FAL_KEY=${FAL_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - RESOURCES_DIR=${RESOURCES_DIR}
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 300s
+      timeout: 10s
+      retries: 3
+    networks:
+      - social-media-network
+      - traefik_network
+    labels:
+      - "traefik.http.services.image-and-video-generator.loadbalancer.server.port=8000"
+      - traefik.enable=true
+      - traefik.http.routers.image-and-video-generator.rule=Host(`${IMAGE_AND_VIDEO_GENERATOR_DOMAIN}`)
+      - traefik.http.routers.image-and-video-generator.tls=false
+      - traefik.http.routers.image-and-video-generator.tls.certresolver=myhttpchallenge
+      - "traefik.http.middlewares.image-and-video-generator-https-headers.headers.customRequestHeaders.X-Forwarded-Proto=https"
+    volumes:
+      - ${DATA_WORKSPACE:-/data/workspace-social-media-video/ressources}:/app/ressources
+
 volumes:
   mongodb_data:
 
