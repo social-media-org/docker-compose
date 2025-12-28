@@ -9,6 +9,13 @@ services:
     environment:
       - VITE_API_BASE_URL=https://${UI_SERVICE_DOMAIN}
       - VITE_YOUTUBE_API_BASE_URL=https://${YOUTUBE_SERVICE_DOMAIN}
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://127.0.0.1:3000/ || exit 1"]
+      interval: 300s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+      start_interval: 5s
     networks:
       - social-media-network
       - traefik_network
