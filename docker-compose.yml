@@ -293,9 +293,12 @@ services:
       - ALLOWED_HOSTS=${ALLOWED_HOSTS:-["*"]}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - LOG_FORMAT=${LOG_FORMAT:-text}
-      # API Keys
-      - FAL_KEY=${FAL_KEY}
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      # DeAPI Configuration
+      - DEAPI_API_KEY=${DEAPI_API_KEY}
+      - DEAPI_BASE_URL=${DEAPI_BASE_URL:-https://api.deapi.ai}
+      # Provider Selection
+      - DEFAULT_IMAGE_PROVIDER=${DEFAULT_IMAGE_PROVIDER:-deapi}
+      - DEFAULT_VIDEO_PROVIDER=${DEFAULT_VIDEO_PROVIDER:-deapi}
       - RESOURCES_DIR=${RESOURCES_DIR}
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
