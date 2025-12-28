@@ -61,7 +61,8 @@ services:
       interval: 300s
       timeout: 10s
       retries: 3
-      start_period: 5s
+      start_period: 30s
+      start_interval: 5s
     networks:
       - social-media-network
       - traefik_network
@@ -113,7 +114,8 @@ services:
       interval: 300s
       timeout: 10s
       retries: 3
-      start_period: 5s
+      start_period: 30s
+      start_interval: 5s
     networks:
       - social-media-network
     volumes:
@@ -155,7 +157,8 @@ services:
       interval: 300s
       timeout: 10s
       retries: 3
-      start_period: 5s
+      start_period: 30s
+      start_interval: 5s
     networks:
       - social-media-network
     volumes:
@@ -190,7 +193,8 @@ services:
       interval: 300s
       timeout: 10s
       retries: 3
-      start_period: 5s
+      start_period: 30s
+      start_interval: 5s
     networks:
       - social-media-network
     volumes:
@@ -227,7 +231,8 @@ services:
       interval: 300s
       timeout: 10s
       retries: 3
-      start_period: 5s
+      start_period: 30s
+      start_interval: 5s
     networks:
       - social-media-network
     volumes:
@@ -269,7 +274,8 @@ services:
       interval: 300s
       timeout: 10s
       retries: 3
-      start_period: 5s
+      start_period: 30s
+      start_interval: 5s
     networks:
       - social-media-network
       - traefik_network
@@ -311,7 +317,8 @@ services:
       interval: 300s
       timeout: 10s
       retries: 3
-      start_period: 5s
+      start_period: 30s
+      start_interval: 5s
     networks:
       - social-media-network
       - traefik_network
