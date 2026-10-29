@@ -8,6 +8,7 @@
 - [3. social-media vs MoneyPrinterTurbo](#3-social-media-vs-moneyprinterturbo)
 - [4. Recommandation](#4-recommandation)
 - [5. Reste à faire pour une V1](#5-reste-à-faire-pour-une-v1)
+  - [5.1 Identifiants manquants](#51-identifiants-manquants)
 - [6. Plan pour l'autopilot](#6-plan-pour-lautopilot)
 
 Abréviations : **MPT** = [MoneyPrinterTurbo](https://github.com/harry0703/MoneyPrinterTurbo) ; **SM** = social-media ; **TTS** = synthèse vocale (*text-to-speech*) ; **OAuth** = connexion déléguée à un compte Google.
@@ -30,7 +31,7 @@ flowchart LR
 |---|---|
 | 9 conteneurs (8 SM + MPT) | ✅ sains |
 | Routes via Traefik (contrôlées à l'origine) | ✅ 200 avec identifiants, 401 sans |
-| Accès public via Cloudflare | ❌ boucle de redirection : Cloudflare est en SSL « Flexible » → passer `video.manga-pics.com` en **Full (strict)** (certificat Let's Encrypt déjà obtenu) |
+| Accès public via Cloudflare | ❌ boucle 308 : Cloudflare (SSL Flexible) appelle l'origine en HTTP, et le Traefik de work redirige tout le port 80 vers HTTPS, même un routeur `tls=false`. Correctif : [hebergement#4](https://github.com/hebergement-org/hebergement/pull/4) puis `TRAEFIK_TLS_MAIN=false` (convention Digitia). Autre option : règle Cloudflare Full (strict) pour ce seul hôte, avec `TRAEFIK_TLS_MAIN=true` (réglage actuel). |
 | Exploitation | `video status \| logs \| restart \| up \| down \| build \| health [sm\|mpt\|all] [service]` |
 | Config | [`docker-compose.work.yml`](../docker-compose.work.yml), [`moneyprinter/`](../moneyprinter), [`deploy-manifest.yml`](../deploy-manifest.yml) |
 
@@ -61,7 +62,7 @@ flowchart LR
 | # | Problème | Où |
 |---|---|---|
 | 1 | 🔐 Secret client OAuth Google en dur et commité | `youtube-service/app/core/config.py:41-42` |
-| 2 | Aucune authentification (contournée sur work par un basic auth) ; `/debug/resources` expose le disque | `ui-service/app/main.py:75` |
+| 2 | `/debug/resources` expose le disque (l'authentification applicative est reportée : basic auth Traefik en attendant) | `ui-service/app/main.py:75` |
 | 3 | URL des services sans suffixe de route → 404 si le `.env` de prod n'est pas recopié | `ui-service/app/services/*_service.py` |
 | 4 | Appel à un service d'images inexistant | `ui-service/app/core/config.py:40` |
 | 5 | Gabarit `''` non détecté, puis `os.path.exists(None)` | `ui-service/app/services/video_service.py:112,123` |
@@ -129,22 +130,34 @@ Si tu veux seulement produire des vidéos « sans visage » à la chaîne, **MPT
 | Priorité | Travail | Taille | Qui |
 |---|---|---|---|
 | P0 | Révoquer le secret OAuth Google, le sortir du code | S | 👤 + autopilot |
-| P0 | Cloudflare : Full (strict) pour `video.manga-pics.com` | S | 👤 |
-| P0 | Crédit OpenAI **ou** clé [Pexels](https://www.pexels.com/api/) (gratuite) | S | 👤 |
-| P0 | Déclarer `https://video.manga-pics.com/socialmedia/youtube/auth/callback` dans la console Google | S | 👤 |
-| P0 | Merger [ui-frontend#6](https://github.com/social-media-org/ui-frontend/pull/6) et [docker-compose#2](https://github.com/social-media-org/docker-compose/pull/2) | S | 👤 |
-| P0 | Regrouper les dépôts utiles dans un seul dépôt + CI avec tests | M | autopilot |
+| P0 | Accès public : déployer [hebergement#4](https://github.com/hebergement-org/hebergement/pull/4) | S | 👤 (feu vert) |
+| P0 | Identifiants manquants (§5.1) | S | 👤 |
+| ✅ | Dépôt unique [social-media-org/social-media](https://github.com/social-media-org/social-media) | M | fait |
+| P0 | CI avec tests sur le dépôt unique | M | autopilot |
 | P0 | Rendu via l'API MPT (tâche + suivi d'avancement dans l'UI) | M | autopilot |
 | P0 | Upload de la vidéo sous-titrée, retour OAuth vers `/settings` | S | autopilot |
 | P1 | Miniature (image extraite de la vidéo) | M | autopilot |
 | P1 | Vidéos d'inspiration facultatives, correctif *bot-detection* | S | autopilot |
 | P1 | Pas d'appel payant avant le 1ᵉʳ enregistrement (`temp`) ; actions rapides corrigées | S | autopilot |
-| P1 | Authentification applicative (remplace le basic auth) | M | autopilot |
 | P2 | Ménage : dépendances mortes, médias commités, dépôts archivés | S | autopilot |
+| P2 | Modernisation visuelle du frontend | M | autopilot (fin) |
+| — | Authentification applicative | M | reportée (basic auth en attendant) |
+
+## 5.1 Identifiants manquants
+
+| Identifiant | Pour quoi | Bloque | Où le mettre |
+|---|---|---|---|
+| Clé API [Pexels](https://www.pexels.com/api/) (gratuite) — introuvable dans tes `.env` | Vidéos d'illustration de MPT | Test MPT réel, J2 | `moneyprinter/config.toml` (`pexels_api_keys`) sur work |
+| Nouveau client OAuth Google (ID + secret), API YouTube Data v3 activée | Remplacer le secret commité | J3 | `.env` work : `YOUTUBE_CLIENT_ID`, `YOUTUBE_CLIENT_SECRET` |
+| URI de retour `https://video.manga-pics.com/socialmedia/youtube/auth/callback` | Déclarée dans ce client OAuth | J3 | console Google |
+| Chaîne YouTube de test | Publier en « non répertorié » sans toucher ta vraie chaîne | J3 | autorisation via l'UI |
+| Crédit OpenAI (facultatif) | Images IA dans MPT (compte à 0 $) | rien si Pexels | — |
+
+Déjà présents et valides : DeepSeek (4,64 $), ElevenLabs (offre gratuite, 10 000 caractères/mois ≈ 10 min de voix ; Edge TTS gratuit en secours), AssemblyAI, MongoDB Atlas, DeAPI.
 
 # 6. Plan pour l'autopilot
 
-Brouillon de brief prêt à relire : [`docs/autopilot/brief.md`](autopilot/brief.md). Il ira dans le nouveau dépôt unique au démarrage du chantier.
+Brief : [`docs/autopilot/brief.md`](https://github.com/social-media-org/social-media/blob/main/docs/autopilot/brief.md) du dépôt unique.
 
 ```mermaid
 gantt
@@ -158,12 +171,14 @@ gantt
   J3 Publication YouTube fiable               :j3, after j2, 3d
   J4 Idéation robuste                         :j4, after j3, 2d
   J5 Parcours complet testé (v1.0.0)          :j5, after j4, 2d
+  J6 Modernisation visuelle (v1.1.0)          :j6, after j5, 3d
 ```
 
 | Jalon | Livré quand |
 |---|---|
-| J1 | Un seul dépôt `social-media-org/social-media`, CI verte (pytest + build arm64), 0 secret dans le code, `/debug` supprimé |
+| J1 | CI verte (pytest + build arm64) sur le dépôt unique, 0 secret dans le code, `/debug` supprimé |
 | J2 | Un projet produit un MP4 sous-titré via MPT ; l'UI affiche l'avancement ; audio/video/subtitle retirés du compose |
 | J3 | Vidéo sous-titrée + miniature publiées en « non répertorié » sur une chaîne de test ; programmation vérifiée |
 | J4 | Script générable sans vidéo d'inspiration ; aucun appel payant sur un projet non enregistré |
 | J5 | Test de bout en bout idée → vidéo publiée, rejouable par `video` sur work |
+| J6 | Frontend modernisé (design system, responsive, états vides et erreurs) sans régression du parcours J5 |

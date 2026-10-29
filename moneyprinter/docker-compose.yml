@@ -40,7 +40,7 @@ services:
       - traefik.enable=true
       - traefik.docker.network=web
       - traefik.http.routers.mpt.rule=Host(`${PUBLIC_HOST}`) && PathPrefix(`/moneyprinter`)
-      - traefik.http.routers.mpt.entrypoints=websecure
+      - traefik.http.routers.mpt.tls=${TRAEFIK_TLS_MAIN:-false}
       - traefik.http.routers.mpt.tls.certresolver=letsencrypt
       - traefik.http.routers.mpt.middlewares=mpt-auth
       - traefik.http.services.mpt.loadbalancer.server.port=8501

@@ -2,6 +2,8 @@
 #   docker compose -f docker-compose.yml -f docker-compose.work.yml up -d --build
 # Traefik = hebergo-traefik-1 (réseau `web`, resolver `letsencrypt`, entrypoint `websecure`).
 # Images construites sur place depuis ../<service> : work n'a pas d'accès ghcr.
+# TLS : TRAEFIK_TLS_MAIN=false (défaut) = derrière Cloudflare, qui gère le SSL et appelle l'origine en HTTP
+# (convention Digitia) ; true = DNS direct, Let's Encrypt par Traefik.
 # Tout est derrière un basic auth (SM_BASIC_AUTH dans .env, entre apostrophes).
 
 x-limits: &limits
@@ -22,7 +24,7 @@ services:
       - traefik.enable=true
       - traefik.docker.network=web
       - traefik.http.routers.sm-front.rule=Host(`${PUBLIC_HOST}`) && PathPrefix(`/socialmedia`)
-      - traefik.http.routers.sm-front.entrypoints=websecure
+      - traefik.http.routers.sm-front.tls=${TRAEFIK_TLS_MAIN:-false}
       - traefik.http.routers.sm-front.tls.certresolver=letsencrypt
       - traefik.http.routers.sm-front.middlewares=sm-auth,sm-slash,sm-strip
       - traefik.http.services.sm-front.loadbalancer.server.port=3000
@@ -40,7 +42,7 @@ services:
       - traefik.enable=true
       - traefik.docker.network=web
       - traefik.http.routers.sm-api.rule=Host(`${PUBLIC_HOST}`) && PathPrefix(`/socialmedia/api`)
-      - traefik.http.routers.sm-api.entrypoints=websecure
+      - traefik.http.routers.sm-api.tls=${TRAEFIK_TLS_MAIN:-false}
       - traefik.http.routers.sm-api.tls.certresolver=letsencrypt
       - traefik.http.routers.sm-api.middlewares=sm-auth,sm-api-strip
       - traefik.http.services.sm-api.loadbalancer.server.port=8000
@@ -54,7 +56,7 @@ services:
       - traefik.enable=true
       - traefik.docker.network=web
       - traefik.http.routers.sm-youtube.rule=Host(`${PUBLIC_HOST}`) && PathPrefix(`/socialmedia/youtube`)
-      - traefik.http.routers.sm-youtube.entrypoints=websecure
+      - traefik.http.routers.sm-youtube.tls=${TRAEFIK_TLS_MAIN:-false}
       - traefik.http.routers.sm-youtube.tls.certresolver=letsencrypt
       - traefik.http.routers.sm-youtube.middlewares=sm-auth,sm-youtube-strip
       - traefik.http.services.sm-youtube.loadbalancer.server.port=8000
