@@ -1,0 +1,3 @@
+.env
+.basic_auth_plain
+moneyprinter/config.toml

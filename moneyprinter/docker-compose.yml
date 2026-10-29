@@ -1,0 +1,51 @@
+# MoneyPrinterTurbo (amont : github.com/harry0703/MoneyPrinterTurbo) sur work :
+# video.manga-pics.com/moneyprinter. Clone amont dans ../../MoneyPrinterTurbo.
+#   docker compose up -d --build        (depuis ce dossier, .env = ../.env)
+# Seule la WebUI Streamlit tourne : elle appelle les services en interne, l'API REST (8080) est inutile ici.
+# config.toml (secrets) est généré sur le serveur, jamais commité.
+
+name: moneyprinter
+
+services:
+  webui:
+    image: moneyprinterturbo:work
+    build:
+      context: ../../MoneyPrinterTurbo
+      dockerfile: ../docker-compose/moneyprinter/Dockerfile
+    container_name: moneyprinter-webui
+    restart: always
+    command:
+      - streamlit
+      - run
+      - ./webui/Main.py
+      - --server.address=0.0.0.0
+      - --server.port=8501
+      - --server.baseUrlPath=moneyprinter
+      - --browser.gatherUsageStats=False
+      - --server.showEmailPrompt=False
+      - --client.toolbarMode=minimal
+    volumes:
+      - ./config.toml:/MoneyPrinterTurbo/config.toml
+      - /data/moneyprinter/storage:/MoneyPrinterTurbo/storage
+    mem_limit: 2g
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8501/moneyprinter/_stcore/health')\""]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - web
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=web
+      - traefik.http.routers.mpt.rule=Host(`${PUBLIC_HOST}`) && PathPrefix(`/moneyprinter`)
+      - traefik.http.routers.mpt.tls=${TRAEFIK_TLS_MAIN:-false}
+      - traefik.http.routers.mpt.tls.certresolver=letsencrypt
+      - traefik.http.routers.mpt.middlewares=mpt-auth
+      - traefik.http.services.mpt.loadbalancer.server.port=8501
+      - traefik.http.middlewares.mpt-auth.basicauth.users=${SM_BASIC_AUTH}
+
+networks:
+  web:
+    external: true

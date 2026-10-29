@@ -1,0 +1,59 @@
+# deploy-manifest.yml — social-media (+ MoneyPrinterTurbo en évaluation)
+# Source de vérité du déploiement. Accès SSH : servers.yml (sms-agents-and-skills).
+
+project: social-media
+org: social-media-org
+repo: https://github.com/social-media-org/docker-compose
+local_path: D:\workspace\social-media-org\docker-compose
+
+environments:
+  - work
+
+services:
+  - { name: ui-frontend, role: "UI React/Vite (nginx)", port: 3000, route: /socialmedia }
+  - { name: ui-service, role: "Orchestrateur FastAPI", port: 8000, route: /socialmedia/api }
+  - { name: youtube-service, role: "OAuth + publication YouTube", port: 8000, route: /socialmedia/youtube }
+  - { name: script-service, role: "Scripts (DeepSeek)", port: 8000 }
+  - { name: audio-service, role: "Voix (ElevenLabs)", port: 8000 }
+  - { name: video-service, role: "Montage (moviepy)", port: 8000 }
+  - { name: subtitle-service, role: "Sous-titres (AssemblyAI)", port: 8000 }
+  - { name: image-and-video-generator, role: "Images/clips IA (DeAPI)", port: 8000 }
+  - { name: moneyprinter-webui, role: "MoneyPrinterTurbo, WebUI Streamlit (amont harry0703)", port: 8501, route: /moneyprinter }
+
+compose:
+  files:
+    - docker-compose.yml
+    - docker-compose.work.yml
+    - moneyprinter/docker-compose.yml   # pile séparée (projet compose « moneyprinter »)
+  commands:   # scripts/video.sh enveloppe tout : video <status|logs|restart|up|down|build|health> [sm|mpt|all] [service]
+    build: "video build all"
+    up:    "video up all"
+    down:  "video down all"
+    logs:  "video logs sm {service}"
+    ps:    "video status"
+
+env_overrides:
+  work:
+    server: work    # → servers.yml (151.145.56.41, ARM64, Oracle Linux 10)
+    deploy_dir: /home/opc/workspace/social-media-org/docker-compose
+    domain: video.manga-pics.com   # Cloudflare proxied → Traefik hebergo-traefik-1 (réseau `web`, resolver `letsencrypt`)
+    ci: none   # images construites sur le serveur ; work n'a ni accès ghcr ni identifiants git
+
+health_checks:   # 401 sans identifiants (basic auth) ; `video health` les passe
+  - { name: UI, command: "video health", expect: "200" }
+
+secrets:
+  notes:
+    - ".env copié de demo (~/workspace/social-media-docker-compose/.env), puis surcharges work en fin de fichier : PUBLIC_HOST, FRONTEND_URL, YOUTUBE_REDIRECT_URI, UI_SERVICE_DOMAIN, SM_BASIC_AUTH."
+    - "SM_BASIC_AUTH='user:$apr1$…' (apostrophes obligatoires) ; mot de passe en clair dans .basic_auth_plain (chmod 600)."
+    - "moneyprinter/config.toml généré depuis .env (DeepSeek, ElevenLabs, OpenAI images) ; jamais commité."
+
+deploy_steps:
+  - "Poste : tar des dépôts (git ls-files) → scp → ~/workspace/social-media-org/<dépôt> sur work."
+  - "MoneyPrinterTurbo : git clone public dans ~/workspace/social-media-org/MoneyPrinterTurbo (video pull-src)."
+  - "Serveur : video build all puis video status."
+
+notes:
+  - "Traefik appartient à hebergo (~/workspace/hebergement-org) : ne pas en lancer un second."
+  - "Machine partagée avec 4 runners digitia (2 CPU, 10 Go) : limites mémoire posées sur chaque service."
+  - "Données : MongoDB Atlas partagé avec demo (DB_NAME inchangé) ; ressources dans /data/workspace-social-media-video ; MPT dans /data/moneyprinter/storage."

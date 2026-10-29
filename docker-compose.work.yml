@@ -1,0 +1,100 @@
+# Surcharge pour la machine work (151.145.56.41) : video.manga-pics.com/socialmedia
+#   docker compose -f docker-compose.yml -f docker-compose.work.yml up -d --build
+# Traefik = hebergo-traefik-1 (réseau `web`, resolver `letsencrypt`, entrypoint `websecure`).
+# Images construites sur place depuis ../<service> : work n'a pas d'accès ghcr.
+# TLS : TRAEFIK_TLS_MAIN=false (défaut) = derrière Cloudflare, qui gère le SSL et appelle l'origine en HTTP
+# (convention Digitia) ; true = DNS direct, Let's Encrypt par Traefik.
+# Tout est derrière un basic auth (SM_BASIC_AUTH dans .env, entre apostrophes).
+
+x-limits: &limits
+  mem_limit: 384m
+
+services:
+  ui-frontend:
+    image: social-media/ui-frontend:work
+    build:
+      context: ../ui-frontend/frontend
+      args:
+        VITE_BASE_PATH: /socialmedia/
+    environment: !override
+      - VITE_API_BASE_URL=https://${PUBLIC_HOST}/socialmedia/api
+      - VITE_YOUTUBE_API_BASE_URL=https://${PUBLIC_HOST}/socialmedia/youtube
+    mem_limit: 64m
+    labels: !override
+      - traefik.enable=true
+      - traefik.docker.network=web
+      - traefik.http.routers.sm-front.rule=Host(`${PUBLIC_HOST}`) && PathPrefix(`/socialmedia`)
+      - traefik.http.routers.sm-front.tls=${TRAEFIK_TLS_MAIN:-false}
+      - traefik.http.routers.sm-front.tls.certresolver=letsencrypt
+      - traefik.http.routers.sm-front.middlewares=sm-auth,sm-slash,sm-strip
+      - traefik.http.services.sm-front.loadbalancer.server.port=3000
+      - traefik.http.middlewares.sm-auth.basicauth.users=${SM_BASIC_AUTH}
+      # /socialmedia → /socialmedia/ (le basename du routeur React exige le slash)
+      - traefik.http.middlewares.sm-slash.redirectregex.regex=^(https?://[^/]+/socialmedia)$$
+      - traefik.http.middlewares.sm-slash.redirectregex.replacement=$${1}/
+      - traefik.http.middlewares.sm-strip.stripprefix.prefixes=/socialmedia
+
+  ui-service:
+    image: social-media/ui-service:work
+    build: ../ui-service
+    <<: *limits
+    labels: !override
+      - traefik.enable=true
+      - traefik.docker.network=web
+      - traefik.http.routers.sm-api.rule=Host(`${PUBLIC_HOST}`) && PathPrefix(`/socialmedia/api`)
+      - traefik.http.routers.sm-api.tls=${TRAEFIK_TLS_MAIN:-false}
+      - traefik.http.routers.sm-api.tls.certresolver=letsencrypt
+      - traefik.http.routers.sm-api.middlewares=sm-auth,sm-api-strip
+      - traefik.http.services.sm-api.loadbalancer.server.port=8000
+      - traefik.http.middlewares.sm-api-strip.stripprefix.prefixes=/socialmedia/api
+
+  youtube-service:
+    image: social-media/youtube-service:work
+    build: ../youtube-service
+    <<: *limits
+    labels: !override
+      - traefik.enable=true
+      - traefik.docker.network=web
+      - traefik.http.routers.sm-youtube.rule=Host(`${PUBLIC_HOST}`) && PathPrefix(`/socialmedia/youtube`)
+      - traefik.http.routers.sm-youtube.tls=${TRAEFIK_TLS_MAIN:-false}
+      - traefik.http.routers.sm-youtube.tls.certresolver=letsencrypt
+      - traefik.http.routers.sm-youtube.middlewares=sm-auth,sm-youtube-strip
+      - traefik.http.services.sm-youtube.loadbalancer.server.port=8000
+      - traefik.http.middlewares.sm-youtube-strip.stripprefix.prefixes=/socialmedia/youtube
+
+  # Services internes : pas de port publié sur l'hôte, pas de route Traefik.
+  script-service:
+    image: social-media/script-service:work
+    build: ../script-service
+    <<: *limits
+
+  audio-service:
+    image: social-media/audio-service:work
+    build: ../audio-service
+    ports: !reset []
+    <<: *limits
+
+  video-service:
+    image: social-media/video-service:work
+    build: ../video-service
+    ports: !reset []
+    mem_limit: 1g
+
+  subtitle-service:
+    image: social-media/subtitle-service:work
+    build: ../subtitle-service
+    ports: !reset []
+    mem_limit: 768m   # ~375 Mo au repos (whisper/moviepy)
+
+  image-and-video-generator:
+    image: social-media/image-and-video-generator:work
+    build: ../image-and-video-generator
+    <<: *limits
+    labels: !reset []
+    networks: !override
+      - social-media-network
+
+networks:
+  traefik_network:
+    external: true
+    name: web
